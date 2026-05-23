@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Habit Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Habits" />
+  <style>
+    /* Force no horizontal scroll at every level */
+    html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+    .app-shell { overflow-x: hidden !important; max-width: 100vw !important; }
+    .main-wrapper { overflow-x: hidden !important; max-width: calc(100vw - 248px) !important; }
+    #app { overflow-x: hidden !important; max-width: 100% !important; }
+    .view { overflow-x: hidden !important; max-width: 100% !important; }
+    #view-month { overflow-x: hidden !important; max-width: 100% !important; }
+    .tab-panel { overflow-x: hidden !important; max-width: 100% !important; }
+    /* Grid wrap clips the table */
+    .grid-wrap { overflow: hidden !important; max-width: 100% !important; }
+    /* Table fills exactly the grid-wrap */
+    .habit-grid { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Login Screen ────────────────────────────────────────── -->
+  <div id="login-screen" class="login-screen hidden">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">◆</div>
+        <span class="login-logo-name">Daily Habit Portal</span>
+      </div>
+
+      <h2 class="login-title" id="login-title">Welcome back</h2>
+      <p  class="login-sub"   id="login-sub">Enter your password to continue</p>
+
+      <div class="login-field" id="login-pw-wrap">
+        <input type="password" id="login-password" class="login-input"
+               placeholder="Password" autocomplete="current-password" />
+        <button type="button" class="login-eye" id="login-eye" title="Toggle visibility">👁</button>
+      </div>
+
+      <div class="login-field hidden" id="login-confirm-wrap">
+        <input type="password" id="login-confirm" class="login-input"
+               placeholder="Confirm new password" autocomplete="new-password" />
+        <button type="button" class="login-eye" id="login-eye-c" title="Toggle visibility">👁</button>
+      </div>
+
+      <div class="login-field hidden" id="login-recovery-wrap">
+        <input type="text" id="login-recovery" class="login-input login-input-mono"
+               placeholder="Recovery code (e.g. AB3X7K2M9PQR)"
+               autocomplete="off" spellcheck="false" />
+      </div>
+
+      <!-- Recovery code display (shown once after first-time setup) -->
+      <div class="recovery-code-block hidden" id="recovery-code-block">
+        <p class="recovery-code-warn">⚠️ Write this down or copy it somewhere safe. It will <strong>not</strong> be shown again.</p>
+        <div class="recovery-code-value" id="recovery-code-value"></div>
+        <button type="button" class="btn btn-secondary recovery-copy-btn" id="btn-copy-recovery">Copy Code</button>
+      </div>
+
+      <p class="login-error hidden" id="login-error"></p>
+
+      <button id="login-btn" class="btn btn-primary login-submit">Unlock</button>
+
+      <div class="login-links">
+        <button type="button" class="login-link hidden" id="login-forgot-btn">Forgot password?</button>
+        <button type="button" class="login-link hidden" id="login-back-btn">← Back to login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Loading Screen ─────────────────────────────────────── -->
+  <div id="loading-screen" class="loading-screen hidden">
+    <div class="loading-logo">
+      <div class="loading-icon">◆</div>
+      <div class="loading-title">Daily Habit Portal</div>
+    </div>
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading from Google Sheets…</p>
+  </div>
+
+  <!-- ── App Shell (hidden until data loaded) ───────────────── -->
+  <div id="app-shell" class="app-shell hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">◆</div>
+          <span class="brand-name">Daily Habit Portal</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="year-switcher">
+        <button id="year-prev" class="year-btn" title="Previous year">‹</button>
+        <span id="year-display" class="year-display">2025</span>
+        <button id="year-next" class="year-btn" title="Next year">›</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-link" data-route="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="#year" class="nav-link" data-route="year">
+          <span class="nav-icon">📅</span>
+          <span class="nav-text">Year Overview</span>
+        </a>
+
+        <div class="nav-section-label">Months</div>
+        <div class="months-grid">
+          <a href="#month/0"  class="nav-link nav-month" data-route="month/0">Jan</a>
+          <a href="#month/1"  class="nav-link nav-month" data-route="month/1">Feb</a>
+          <a href="#month/2"  class="nav-link nav-month" data-route="month/2">Mar</a>
+          <a href="#month/3"  class="nav-link nav-month" data-route="month/3">Apr</a>
+          <a href="#month/4"  class="nav-link nav-month" data-route="month/4">May</a>
+          <a href="#month/5"  class="nav-link nav-month" data-route="month/5">Jun</a>
+          <a href="#month/6"  class="nav-link nav-month" data-route="month/6">Jul</a>
+          <a href="#month/7"  class="nav-link nav-month" data-route="month/7">Aug</a>
+          <a href="#month/8"  class="nav-link nav-month" data-route="month/8">Sep</a>
+          <a href="#month/9"  class="nav-link nav-month" data-route="month/9">Oct</a>
+          <a href="#month/10" class="nav-link nav-month" data-route="month/10">Nov</a>
+          <a href="#month/11" class="nav-link nav-month" data-route="month/11">Dec</a>
+        </div>
+
+        <div class="nav-section-label">Tracker</div>
+        <a href="#goals" class="nav-link" data-route="goals">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-text">Goals</span>
+        </a>
+        <a href="#schedule" class="nav-link" data-route="schedule">
+          <span class="nav-icon">🕐</span>
+          <span class="nav-text">Schedule</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="sync-status" class="sync-status"></div>
+        <span id="nav-backup-info" class="nav-backup-info"></span>
+
+        <!-- Profile switcher -->
+        <div class="profile-switcher" id="profile-switcher">
+          <div class="profile-current" id="profile-current-name">👤 Default</div>
+          <div class="profile-actions hidden" id="profile-actions">
+            <select id="profile-select" class="form-control profile-select"></select>
+            <button id="btn-new-profile" class="btn btn-secondary btn-sm">➕ New Profile</button>
+            <button id="btn-delete-profile" class="btn btn-danger btn-sm">🗑 Delete</button>
+          </div>
+        </div>
+
+        <button id="btn-logout" class="btn-logout" title="Lock app">🔒 Lock</button>
+      </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="3" y1="6"  x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="topbar-brand">
+            <div class="brand-icon-sm">◆</div>
+            <span>Daily Habit Portal</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button id="btn-export" class="btn nav-btn">↑ Export</button>
+          <button id="btn-import" class="btn nav-btn">↓ Import</button>
+          <input type="file" id="import-file-input" accept=".json" style="display:none" aria-hidden="true" />
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <main id="app">
+
+        <!-- Dashboard -->
+        <div id="view-dashboard" class="view hidden"></div>
+
+        <!-- Year Overview -->
+        <div id="view-year" class="view hidden"></div>
+
+        <!-- Monthly Detail -->
+        <div id="view-month" class="view hidden">
+          <div class="month-header">
+            <h2 id="month-title"></h2>
+          </div>
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="daily">Daily Grid</button>
+            <button class="tab-btn" data-tab="weekly">Weekly Summary</button>
+            <button class="tab-btn" data-tab="monthly">Monthly Habits</button>
+            <button class="tab-btn" data-tab="stats">Statistics</button>
+          </div>
+          <div id="tab-daily"   class="tab-panel"></div>
+          <div id="tab-weekly"  class="tab-panel hidden"></div>
+          <div id="tab-monthly" class="tab-panel hidden"></div>
+          <div id="tab-stats"   class="tab-panel hidden"></div>
+        </div>
+
+        <!-- Goals -->
+        <div id="view-goals" class="view hidden"></div>
+
+        <!-- Schedule (Smart Time Tracking) -->
+        <div id="view-schedule" class="view hidden"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div id="confirm-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon">📅</div>
+      <h3 class="modal-title" id="modal-title"></h3>
+      <p class="modal-body" id="modal-body"></p>
+      <p class="modal-tip" id="modal-tip"></p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <!-- JS modules (order matters) -->
+  <script src="js/auth.js"></script>
+  <script src="js/profiles.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/import.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
